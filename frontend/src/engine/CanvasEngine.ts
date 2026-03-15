@@ -3,6 +3,7 @@ import { type ILayerComponent } from '../layers/ILayerComponent';
 import { Layer } from '../layers/Layer';
 import { LayerGroup } from '../layers/LayerGroup';
 import type { ITool } from '../tools/ITool';
+import { CanvasAdapter } from '../patterns/CanvasAdapter';
 
 export interface EngineState {
     tool: string;
@@ -20,10 +21,9 @@ export class CanvasEngine extends Observable<EngineState> {
     private tool: ITool;
     private color: string = '#1a1a2e';
     private size: number = 5;
-    private opacity: number = 1; // 0..1, впливає тільки на поточний мазок
+    private opacity: number = 1;
     private down: boolean = false;
 
-    // Поточна незавершена команда малювання (між mousedown і mouseup)
     private pendingCommand: null = null;
 
     private readonly root: LayerGroup;
@@ -92,6 +92,18 @@ export class CanvasEngine extends Observable<EngineState> {
 
     getLayers(): ILayerComponent[] {
         return this.root.getChildren();
+    }
+
+    async exportAs(name: string, fmt: 'png' | 'jpg' | 'json'): Promise<void> {
+        await CanvasAdapter.downloadAs(this.canvas, name, fmt, this.getLayers());
+    }
+
+    getBase64(): string {
+        return CanvasAdapter.toBase64Png(this.canvas);
+    }
+
+    getJson(): string {
+        return JSON.stringify(CanvasAdapter.toJson(this.canvas, this.getLayers()));
     }
 
     getCanvasEl(): HTMLCanvasElement {
