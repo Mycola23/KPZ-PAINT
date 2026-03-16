@@ -1,6 +1,6 @@
 import { Observable } from '../patterns/Observable';
-import { ILayerComponent } from './ILayerComponent';
-import { LayerChangedEvent } from './Layer';
+import { type ILayerComponent } from './ILayerComponent';
+import { type LayerChangedEvent } from './Layer';
 
 export class LayerGroup extends Observable<LayerChangedEvent> implements ILayerComponent {
     private readonly id: string;

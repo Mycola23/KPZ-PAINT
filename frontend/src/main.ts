@@ -274,3 +274,4 @@ function getById<T extends HTMLElement = HTMLElement>(id: string): T | null {
 
 const app = new PaintApp();
 app.init();
+(window as Record<string, unknown>)['paintApp'] = app;
