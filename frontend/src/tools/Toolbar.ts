@@ -65,12 +65,12 @@ export class Toolbar {
     private bindEvents(): void {
         this.container.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(btn => {
             btn.addEventListener('click', () => {
-                // make set tool
+                this.engine.setTool(btn.dataset['tool'] as ToolType);
                 this.setActiveTool(btn);
             });
         });
 
-        // Undo / Redo / Clear
+        // undo / redo / clear
         this.container.querySelector('#btn-undo')?.addEventListener('click', () => this.engine /* add undo*/);
         this.container.querySelector('#btn-redo')?.addEventListener('click', () => this.engine /* add redo*/);
         this.container.querySelector('#btn-clear')?.addEventListener('click', () => {
@@ -86,7 +86,39 @@ export class Toolbar {
                 this.engine.exportAs('drawing', fmt);
             });
         });
+
+        document.addEventListener('keydown', this.handleKeyboard);
     }
+    private readonly handleKeyboard = (e: KeyboardEvent): void => {
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            this.engine; //add undo
+            return;
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+            e.preventDefault();
+            this.engine; // add redo
+            return;
+        }
+
+        const shortcuts: Record<string, ToolType> = {
+            b: 'brush',
+            e: 'eraser',
+            l: 'line',
+            r: 'rectangle',
+            c: 'circle',
+            f: 'fill',
+        };
+        const tool = shortcuts[e.key.toLowerCase()];
+        if (tool) {
+            this.engine.setTool(tool);
+            const btn = this.container.querySelector<HTMLButtonElement>(`[data-tool="${tool}"]`);
+            if (btn) this.setActiveTool(btn);
+        }
+    };
 
     private setActiveTool(activeBtn: HTMLButtonElement): void {
         this.container.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('paint-toolbar__btn--active'));
