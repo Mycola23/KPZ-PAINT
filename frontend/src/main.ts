@@ -13,6 +13,7 @@ class PaintApp {
         this.wireColorPicker();
         this.wireLayerPanel();
         this.wireKeyboard();
+        this.subscribeHistory();
     }
 
     private buildHTML(): string {
@@ -231,6 +232,17 @@ class PaintApp {
         list.querySelector('.layer-item')?.classList.add('active');
     }
 
+    private subscribeHistory(): void {
+        this.engine.history.subscribe(state => {
+            const undo = getById<HTMLButtonElement>('btn-undo')!;
+            const redo = getById<HTMLButtonElement>('btn-redo')!;
+            undo.disabled = !state.canUndo;
+            undo.title = state.undoLabel ? `Undo: ${state.undoLabel} (Ctrl+Z)` : 'Undo (Ctrl+Z)';
+            redo.disabled = !state.canRedo;
+            redo.title = state.redoLabel ? `Redo: ${state.redoLabel} (Ctrl+Y)` : 'Redo (Ctrl+Y)';
+        });
+    }
+
     private wireKeyboard(): void {
         const shortcuts: Record<string, ToolType> = {
             b: 'brush',
@@ -247,12 +259,12 @@ class PaintApp {
 
             if ((ev.ctrlKey || ev.metaKey) && ev.key === 'z') {
                 ev.preventDefault();
-                this.engine; // add undo
+                this.engine.undo();
                 return;
             }
             if ((ev.ctrlKey || ev.metaKey) && ev.key === 'y') {
                 ev.preventDefault();
-                this.engine; // ad redo
+                this.engine.redo();
                 return;
             }
 
@@ -274,4 +286,3 @@ function getById<T extends HTMLElement = HTMLElement>(id: string): T | null {
 
 const app = new PaintApp();
 app.init();
-(window as Record<string, unknown>)['paintApp'] = app;
