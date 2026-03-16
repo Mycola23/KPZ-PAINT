@@ -4,6 +4,7 @@ import { Layer } from '../layers/Layer';
 import { LayerGroup } from '../layers/LayerGroup';
 import type { ITool } from '../tools/ITool';
 import { CanvasAdapter } from '../patterns/CanvasAdapter';
+import { ToolFactory, type ToolType } from '../tools/ToolFactory';
 
 export interface EngineState {
     tool: string;
@@ -36,6 +37,7 @@ export class CanvasEngine extends Observable<EngineState> {
         if (!ctx) throw new Error('No 2D context');
         this.ctx = ctx;
         this.root = new LayerGroup('Root');
+        this.tool = ToolFactory.create('brush');
         this.addLayer('Background');
         this.bindEvents();
     }
@@ -52,6 +54,12 @@ export class CanvasEngine extends Observable<EngineState> {
 
     static reset(): void {
         CanvasEngine.inst = null;
+    }
+
+    setTool(type: ToolType): void {
+        this.tool = ToolFactory.create(type);
+        this.canvas.style.cursor = this.tool.cursor;
+        this.emit();
     }
 
     setColor(c: string): void {
