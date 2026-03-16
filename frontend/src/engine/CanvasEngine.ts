@@ -5,6 +5,9 @@ import { LayerGroup } from '../layers/LayerGroup';
 import type { ITool } from '../tools/ITool';
 import { CanvasAdapter } from '../patterns/CanvasAdapter';
 import { ToolFactory, type ToolType } from '../tools/ToolFactory';
+import { CommandHistory } from '../commands/CommandHistory';
+import { DrawCommand, ClearCommand, FilterCommand } from '../commands/Commands';
+import type { IFilter } from '../filters/IFilter';
 
 export interface EngineState {
     tool: string;
@@ -25,8 +28,8 @@ export class CanvasEngine extends Observable<EngineState> {
     private opacity: number = 1;
     private down: boolean = false;
 
-    private pendingCommand: null = null;
-
+    private pendingCommand: DrawCommand | null = null;
+    readonly history: CommandHistory;
     private readonly root: LayerGroup;
     private active: Layer | null = null;
 
@@ -36,6 +39,7 @@ export class CanvasEngine extends Observable<EngineState> {
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error('No 2D context');
         this.ctx = ctx;
+        this.history = new CommandHistory();
         this.root = new LayerGroup('Root');
         this.tool = ToolFactory.create('brush');
         this.addLayer('Background');
@@ -100,6 +104,27 @@ export class CanvasEngine extends Observable<EngineState> {
 
     getLayers(): ILayerComponent[] {
         return this.root.getChildren();
+    }
+
+    undo(): void {
+        if (this.history.undo()) this.render();
+    }
+    redo(): void {
+        if (this.history.redo()) this.render();
+    }
+
+    clear(): void {
+        if (!this.active) return;
+        const cmd = new ClearCommand(this.active.getContext());
+        this.history.execute(cmd);
+        this.render();
+    }
+    applyFilter(filter: IFilter): void {
+        if (!this.active) return;
+        const ctx = this.active.getContext();
+        const cmd = new FilterCommand(ctx, d => filter.apply(d), filter.name);
+        this.history.execute(cmd);
+        this.render();
     }
 
     async exportAs(name: string, fmt: 'png' | 'jpg' | 'json'): Promise<void> {
@@ -171,7 +196,7 @@ export class CanvasEngine extends Observable<EngineState> {
         const { x, y } = this.coords(e);
         const layerCtx = this.active.getContext();
 
-        this.pendingCommand = null; // in future change on command
+        this.pendingCommand = new DrawCommand(layerCtx, this.tool.name);
 
         this.tool.onStart(layerCtx, x, y, this.color, this.size, this.opacity);
         this.render();
@@ -191,6 +216,12 @@ export class CanvasEngine extends Observable<EngineState> {
         const layerCtx = this.active.getContext();
         this.tool.onEnd(layerCtx);
         this.render();
+
+        if (this.pendingCommand !== null) {
+            this.pendingCommand.commit();
+            this.history.push(this.pendingCommand);
+            this.pendingCommand = null;
+        }
     }
 
     private emit(): void {
