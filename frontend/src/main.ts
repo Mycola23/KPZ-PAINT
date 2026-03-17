@@ -1,4 +1,5 @@
 import { CanvasEngine } from './engine/CanvasEngine';
+import { GrayscaleFilter, InvertFilter, SepiaFilter, BrightnessFilter } from './filters/Filters';
 import { type ToolType } from './tools/ToolFactory';
 import './style.scss';
 
@@ -147,14 +148,23 @@ class PaintApp {
             });
         });
 
-        getById('btn-undo')!.addEventListener('click', () => this.engine);
-        getById('btn-redo')!.addEventListener('click', () => this.engine);
+        getById('btn-undo')!.addEventListener('click', () => this.engine.undo());
+        getById('btn-redo')!.addEventListener('click', () => this.engine.redo());
         getById('btn-clear')!.addEventListener('click', () => {
-            if (confirm('Clear canvas? (Undo available)')) this.engine;
+            if (confirm('Clear canvas? (Undo available)')) this.engine.clear();
         });
 
         getById('btn-filter')!.addEventListener('click', () => {
             const selected = getById<HTMLSelectElement>('filter-select')!;
+            const filterMap: Record<string, () => void> = {
+                gray: () => this.engine.applyFilter(new GrayscaleFilter()),
+                invert: () => this.engine.applyFilter(new InvertFilter()),
+                sepia: () => this.engine.applyFilter(new SepiaFilter()),
+                'bright+': () => this.engine.applyFilter(new BrightnessFilter(50)),
+                'bright-': () => this.engine.applyFilter(new BrightnessFilter(-50)),
+            };
+            filterMap[selected.value]?.();
+            selected.value = '';
         });
 
         getById('exp-png')!.addEventListener('click', () => this.engine.exportAs('drawing', 'png'));
@@ -163,30 +173,30 @@ class PaintApp {
     }
 
     private wireColorPicker(): void {
-        const pick = getById<HTMLInputElement>('color-pick')!;
-        const range = getById<HTMLInputElement>('size-range')!;
-        const sizeV = getById('size-val')!;
-        const opR = getById<HTMLInputElement>('opacity-range')!;
-        const opV = getById('opacity-val')!;
+        const colorPicker = getById<HTMLInputElement>('color-pick')!;
+        const sizeRange = getById<HTMLInputElement>('size-range')!;
+        const sizeValue = getById('size-val')!;
+        const opacityRange = getById<HTMLInputElement>('opacity-range')!;
+        const opacityValue = getById('opacity-val')!;
 
-        pick.addEventListener('input', () => this.engine.setColor(pick.value));
+        colorPicker.addEventListener('input', () => this.engine.setColor(colorPicker.value));
 
-        range.addEventListener('input', () => {
-            const v = +range.value;
+        sizeRange.addEventListener('input', () => {
+            const v = +sizeRange.value;
             this.engine.setSize(v);
-            sizeV.textContent = String(v);
+            sizeValue.textContent = String(v);
         });
 
-        opR.addEventListener('input', () => {
-            opV.textContent = opR.value;
-            this.engine.setOpacity(+opR.value / 100);
+        opacityRange.addEventListener('input', () => {
+            opacityValue.textContent = opacityRange.value;
+            this.engine.setOpacity(+opacityRange.value / 100);
         });
 
         document.querySelectorAll<HTMLButtonElement>('.color-preset').forEach(btn => {
             btn.addEventListener('click', () => {
                 const c = btn.dataset['c']!;
                 this.engine.setColor(c);
-                pick.value = c;
+                colorPicker.value = c;
             });
         });
     }
