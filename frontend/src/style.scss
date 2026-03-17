@@ -1,0 +1,483 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap");
+
+$ink: #0d0d0d;
+$paper: #f0ede8;
+$panel: #161616;
+$rail: #1e1e1e;
+$border: #2a2a2a;
+$accent: #e94560;
+$accent2: #4d96ff;
+$text: #d4cfc9;
+$muted: #6b6560;
+$radius: 5px;
+
+// styles reset =============================================================
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    font-family: "DM Sans", sans-serif;
+}
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+}
+input {
+    font-family: inherit;
+}
+select {
+    font-family: inherit;
+}
+
+// == app container =============================
+.app {
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    height: 100vh;
+    background: $ink;
+    color: $text;
+}
+
+// == topbar ===============================================
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 12px;
+    background: $panel;
+    border-bottom: 1px solid $border;
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    &__brand {
+        font-family: "Space Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+        color: $accent;
+        white-space: nowrap;
+        margin-right: 8px;
+        letter-spacing: -0.5px;
+    }
+
+    &__tools {
+        display: flex;
+        gap: 2px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid $border;
+        border-radius: $radius;
+        padding: 3px;
+    }
+
+    &__tool {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        border-radius: 3px;
+        color: $muted;
+        transition:
+            background 0.12s,
+            color 0.12s;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: $text;
+        }
+
+        &--active {
+            background: rgba($accent, 0.2) !important;
+            color: $accent !important;
+            box-shadow: inset 0 0 0 1px rgba($accent, 0.4);
+        }
+    }
+
+    &__sep {
+        width: 1px;
+        height: 24px;
+        background: $border;
+        flex-shrink: 0;
+        margin: 0 4px;
+    }
+
+    &__btn {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        border-radius: $radius;
+        color: $muted;
+        transition:
+            background 0.12s,
+            color 0.12s;
+        flex-shrink: 0;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: $text;
+        }
+        &:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        &--danger:hover {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.1);
+        }
+        &--accent {
+            color: $accent2;
+            background: rgba($accent2, 0.1);
+            border: 1px solid rgba($accent2, 0.3);
+        }
+        &--accent:hover {
+            background: rgba($accent2, 0.2);
+        }
+        &--ghost {
+            color: $muted;
+            font-family: "Space Mono", monospace;
+            font-size: 10px;
+            border: 1px solid $border;
+            border-radius: $radius;
+            width: auto;
+            padding: 0 8px;
+        }
+        &--ghost:hover {
+            color: $text;
+            border-color: $text;
+        }
+        &--save {
+            background: $accent;
+            color: #fff;
+            font-weight: 600;
+            width: auto;
+            padding: 0 14px;
+            font-size: 13px;
+            border-radius: $radius;
+            &:hover {
+                background: darken($accent, 8%);
+            }
+        }
+    }
+
+    &__select {
+        height: 30px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid $border;
+        border-radius: $radius;
+        color: $text;
+        font-size: 12px;
+        padding: 0 8px;
+        appearance: none;
+        cursor: pointer;
+
+        option {
+            background: $panel;
+        }
+        &:hover {
+            border-color: #444;
+        }
+    }
+
+    &__title-input {
+        height: 30px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid $border;
+        border-radius: $radius;
+        color: $text;
+        font-size: 13px;
+        padding: 0 10px;
+        width: 160px;
+        transition: border-color 0.15s;
+
+        &:focus {
+            outline: none;
+            border-color: $accent;
+            background: rgba(255, 255, 255, 0.08);
+        }
+    }
+
+    &__status {
+        font-size: 12px;
+        min-width: 60px;
+        font-family: "Space Mono", monospace;
+
+        &--ok {
+            color: #4ade80;
+        }
+        &--err {
+            color: #f87171;
+        }
+    }
+}
+
+// == workspace ==============
+.workspace {
+    display: grid;
+    grid-template-columns: 168px 1fr 160px;
+    overflow: hidden;
+}
+
+// == sidebars ======================================
+.sidebar {
+    background: $rail;
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: $border transparent;
+
+    &--left {
+        border-right: 1px solid $border;
+    }
+    &--right {
+        border-left: 1px solid $border;
+    }
+
+    &__label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: $muted;
+        font-family: "Space Mono", monospace;
+    }
+}
+
+// == color swatch  ========================
+.color-swatch {
+    width: 100%;
+    height: 44px;
+    border: 2px solid $border;
+    border-radius: $radius;
+    cursor: pointer;
+    background: none;
+    padding: 2px;
+    transition: border-color 0.15s;
+
+    &:hover {
+        border-color: $accent;
+    }
+}
+
+// == color presets =====================================
+.color-presets {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 3px;
+}
+
+.color-preset {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    border: 2px solid transparent;
+    transition:
+        transform 0.12s,
+        border-color 0.12s;
+
+    &:hover {
+        transform: scale(1.18);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+}
+
+// == Size Range =============================================
+.size-range {
+    width: 100%;
+    accent-color: $accent;
+    cursor: pointer;
+}
+
+// == canvas area =============================================
+.canvas-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 24px;
+    background-color: #111;
+    background-image:
+        linear-gradient(45deg, #1a1a1a 25%, transparent 25%), linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1a1a1a 75%), linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+    background-size: 16px 16px;
+    background-position:
+        0 0,
+        0 8px,
+        8px -8px,
+        -8px 0px;
+}
+
+.canvas {
+    display: block;
+    cursor: crosshair;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 12px 48px rgba(0, 0, 0, 0.8);
+    border-radius: 2px;
+    max-width: 100%;
+    max-height: 100%;
+    background: #fff;
+}
+
+// == layers panel =================================
+.layers-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.layer-add-btn {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $accent;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 1;
+
+    &:hover {
+        background: darken($accent, 8%);
+    }
+}
+
+.layers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+
+.layer-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 6px;
+    border-radius: $radius;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+        background 0.12s,
+        border-color 0.12s;
+    font-size: 11px;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    &.active {
+        background: rgba($accent, 0.12);
+        border-color: rgba($accent, 0.35);
+    }
+}
+
+.layer-eye {
+    cursor: pointer;
+    opacity: 0.7;
+    &.off {
+        opacity: 0.25;
+    }
+}
+.layer-lock {
+    cursor: pointer;
+    opacity: 0.4;
+    &.on {
+        opacity: 0.9;
+    }
+}
+.layer-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// == gallery drawer ================================================
+.gallery-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 100;
+    &.hidden {
+        display: none;
+    }
+}
+
+.gallery-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 320px;
+    background: $panel;
+    border-top: 1px solid $border;
+    z-index: 101;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &.hidden {
+        display: none;
+    }
+}
+
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: "Space Mono", monospace;
+    font-size: 12px;
+    color: $muted;
+
+    button {
+        color: $muted;
+        font-size: 16px;
+        &:hover {
+            color: $text;
+        }
+    }
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+//scroll bar
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: $border;
+    border-radius: 4px;
+    &:hover {
+        background: #3a3a3a;
+    }
+}
