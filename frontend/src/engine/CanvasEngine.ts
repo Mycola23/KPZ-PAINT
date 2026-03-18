@@ -106,6 +106,37 @@ export class CanvasEngine extends Observable<EngineState> {
         return this.root.getChildren();
     }
 
+    toggleLayerVisibility(id: string): void {
+        const layer = this.root.getChildById(id);
+        if (layer) {
+            layer.setVisible(!layer.isVisible());
+            this.render();
+            this.emit();
+        }
+    }
+
+    toggleLayerLock(id: string): void {
+        const layer = this.root.getChildById(id);
+        if (layer) {
+            layer.setLocked(!layer.isLocked());
+            this.emit();
+        }
+    }
+
+    renameLayer(id: string, newName: string): void {
+        const layer = this.root.getChildById(id);
+        if (layer && newName.trim()) {
+            layer.setName(newName.trim());
+            this.emit();
+        }
+    }
+
+    moveLayer(id: string, direction: 'up' | 'down'): void {
+        this.root.moveChild(id, direction);
+        this.render();
+        this.emit();
+    }
+
     undo(): void {
         if (this.history.undo()) this.render();
     }
