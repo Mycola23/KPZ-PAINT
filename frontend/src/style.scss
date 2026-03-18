@@ -422,7 +422,7 @@ select {
         background 0.2s,
         border-color 0.12s;
     border: 1px solid transparent;
-    min-width: 0; // Дозволяє елементу стискатися всередині контейнера
+    min-width: 0;
 
     &:hover {
         background: rgba(255, 255, 255, 0.05);
@@ -438,8 +438,8 @@ select {
         display: flex;
         align-items: center;
         gap: 8px;
-        flex: 1; // Займає весь вільний простір
-        min-width: 0; // КРИТИЧНО: дозволяє внутрішньому тексту скорочуватись
+        flex: 1;
+        min-width: 0;
     }
 
     .layer-name {
