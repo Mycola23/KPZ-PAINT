@@ -1,0 +1,120 @@
+/*Обнуленння*/
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+*,
+*::before,
+*::after {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+nav,
+footer,
+header,
+aside {
+    display: block;
+}
+html {
+    //scrollbar-gutter: stable;
+}
+html,
+:has(:target) {
+    scroll-behavior: smooth;
+}
+html,
+body {
+    height: 100%;
+    width: 100%;
+    font-size: 100%;
+    line-height: 1.5;
+    font-size: 14px;
+    -ms-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+    font-family: inherit;
+}
+input {
+    outline: none;
+}
+input::-ms-clear {
+    display: none;
+}
+button {
+    cursor: pointer;
+}
+button::-moz-focus-inner {
+    padding: 0;
+    border: 0;
+}
+a,
+a:visited {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: none;
+}
+ul li,
+ol li {
+    list-style: none;
+}
+img {
+    vertical-align: top;
+}
+img,
+video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-size: inherit;
+    font-weight: 400;
+}
+:where(blockquote, figure):where([class]) {
+    margin: 0;
+}
+:where(dd[class]) {
+    margin-left: 0;
+}
+
+:where(fieldset[class]) {
+    margin-left: 0;
+    padding: 0;
+    border: none;
+}
+:where(address[class]) {
+    font-style: normal;
+}
+button,
+label {
+    cursor: pointer;
+}
+svg * {
+    transition-property: fill, stroke;
+}
+/* del all animatiaon if people don`t use it*/
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+/*----------------*/
