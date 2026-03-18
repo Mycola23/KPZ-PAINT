@@ -74,6 +74,23 @@ export class LayerGroup extends Observable<LayerChangedEvent> implements ILayerC
         }
     }
 
+    moveChild(id: string, direction: 'up' | 'down'): void {
+        const index = this.children.findIndex(c => c.getId() === id);
+        if (index === -1) return;
+
+        const newIndex = direction === 'up' ? index + 1 : index - 1;
+
+        if (newIndex >= 0 && newIndex < this.children.length) {
+            const [movedItem] = this.children.splice(index, 1);
+            this.children.splice(newIndex, 0, movedItem);
+            this.notify({ layerId: id, type: 'visibility' });
+        }
+    }
+
+    getChildById(id: string): ILayerComponent | undefined {
+        return this.children.find(c => c.getId() === id);
+    }
+
     getChildren(): ILayerComponent[] {
         return [...this.children];
     }
