@@ -8,7 +8,7 @@ $border: #2a2a2a;
 $accent: #e94560;
 $accent2: #4d96ff;
 $text: #d4cfc9;
-$muted: #6b6560;
+$muted: #c5bdb7;
 $radius: 5px;
 
 // styles reset =============================================================
@@ -41,7 +41,7 @@ select {
 // == app container =============================
 .app {
     display: grid;
-    grid-template-rows: 48px 1fr;
+    grid-template-rows: 60px 1fr;
     height: 100vh;
     background: $ink;
     color: $text;
@@ -63,7 +63,7 @@ select {
 
     &__brand {
         font-family: "Space Mono", monospace;
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 700;
         color: $accent;
         white-space: nowrap;
@@ -81,8 +81,8 @@ select {
     }
 
     &__tool {
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -114,8 +114,8 @@ select {
     }
 
     &__btn {
-        width: 30px;
-        height: 30px;
+        width: 70px;
+        height: 45px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -151,7 +151,6 @@ select {
         &--ghost {
             color: $muted;
             font-family: "Space Mono", monospace;
-            font-size: 10px;
             border: 1px solid $border;
             border-radius: $radius;
             width: auto;
@@ -176,12 +175,11 @@ select {
     }
 
     &__select {
-        height: 30px;
+        min-height: 45px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid $border;
         border-radius: $radius;
         color: $text;
-        font-size: 12px;
         padding: 0 8px;
         appearance: none;
         cursor: pointer;
@@ -195,7 +193,7 @@ select {
     }
 
     &__title-input {
-        height: 30px;
+        height: 45px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid $border;
         border-radius: $radius;
@@ -470,8 +468,8 @@ select {
         color: $muted;
         cursor: pointer;
         padding: 2px;
-        font-size: 14px;
-
+        font-size: 16px;
+        font-weight: 600;
         &:hover {
             color: #fff;
         }

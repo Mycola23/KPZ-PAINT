@@ -234,6 +234,7 @@ class PaintApp {
                     ${layer.isVisible() ? '👁' : '─'}
                 </button>
                 <span class="layer-name" title="Double click to rename">${layer.getName()}</span>
+                 <button class="layer-action btn-delete" title="Delete Layer">🗑</button>
                 <button class="layer-action btn-lock ${layer.isLocked() ? 'on' : ''}" title="Lock">
                     ${layer.isLocked() ? '🔒' : '🔓'}
                 </button>
@@ -270,6 +271,11 @@ class PaintApp {
                     const dir = (btn as HTMLElement).dataset['dir'] === 'up' ? 'up' : 'down';
                     this.engine.moveLayer(layer.getId(), dir);
                 });
+            });
+
+            item.querySelector('.btn-delete')?.addEventListener('click', e => {
+                e.stopPropagation();
+                this.engine.removeLayer(layer.getId());
             });
             list.appendChild(item);
         });
