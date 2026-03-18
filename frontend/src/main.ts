@@ -206,14 +206,9 @@ class PaintApp {
             const name = prompt('Layer name:', `Layer ${this.engine.getLayers().length + 1}`);
             if (name) {
                 this.engine.addLayer(name);
-                this.renderLayerList();
             }
         });
-        this.engine.getLayers().forEach(l => {
-            if ('subscribe' in l) {
-                (l as unknown as { subscribe: (cb: () => void) => void }).subscribe(() => this.renderLayerList());
-            }
-        });
+        this.engine.subscribe(() => this.renderLayerList());
 
         this.renderLayerList();
     }
@@ -221,25 +216,69 @@ class PaintApp {
     private renderLayerList(): void {
         const list = getById('layers-list')!;
         const layers = this.engine.getLayers();
+        const activeLayerId = this.engine
+            .getLayers()
+            .find(l => l.getId() === (this.engine as any).active?.getId())
+            ?.getId();
         list.innerHTML = '';
 
-        [...layers].reverse().forEach(layer => {
+        [...layers].reverse().forEach((layer, index) => {
+            const isFirst = index === 0;
+            const isLast = index === layers.length - 1;
             const item = document.createElement('div');
-            item.className = 'layer-item';
+            item.className = `layer-item ${layer.getId() === activeLayerId ? 'active' : ''}`;
             item.dataset['id'] = layer.getId();
             item.innerHTML = `
-        <span class="layer-eye${layer.isVisible() ? '' : ' off'}" data-lid="${layer.getId()}">👁</span>
-        <span class="layer-name">${layer.getName()}</span>
-        <span class="layer-lock${layer.isLocked() ? ' on' : ''}" data-lid="${layer.getId()}">🔒</span>
-      `;
-            item.addEventListener('click', () => {
+            <div class="layer-item__main">
+                <button class="layer-action btn-eye ${layer.isVisible() ? '' : 'off'}" title="Visibility">
+                    ${layer.isVisible() ? '👁' : '─'}
+                </button>
+                <span class="layer-name" title="Double click to rename">${layer.getName()}</span>
+                 <button class="layer-action btn-delete" title="Delete Layer">🗑</button>
+                <button class="layer-action btn-lock ${layer.isLocked() ? 'on' : ''}" title="Lock">
+                    ${layer.isLocked() ? '🔒' : '🔓'}
+                </button>
+            </div>
+            <div class="layer-item__order">
+                <button class="layer-move" data-dir="up" ${isFirst ? 'disabled' : ''}>▲</button>
+                <button class="layer-move" data-dir="down" ${isLast ? 'disabled' : ''}>▼</button>
+            </div>
+        `;
+            item.addEventListener('click', e => {
+                if ((e.target as HTMLElement).classList.contains('layer-action') || (e.target as HTMLElement).classList.contains('layer-move'))
+                    return;
+                document.querySelectorAll('.layer-item').forEach(el => {
+                    el.classList.remove('active');
+                });
                 this.engine.setActiveLayer(layer.getId());
-                document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
+            });
+
+            item.querySelector('.layer-name')?.addEventListener('dblclick', () => {
+                const newName = prompt('Rename layer:', layer.getName());
+                if (newName) this.engine.renameLayer(layer.getId(), newName);
+            });
+
+            item.querySelector('.btn-eye')?.addEventListener('click', () => {
+                this.engine.toggleLayerVisibility(layer.getId());
+            });
+
+            item.querySelector('.btn-lock')?.addEventListener('click', () => {
+                this.engine.toggleLayerLock(layer.getId());
+            });
+
+            item.querySelectorAll('.layer-move').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const dir = (btn as HTMLElement).dataset['dir'] === 'up' ? 'up' : 'down';
+                    this.engine.moveLayer(layer.getId(), dir);
+                });
+            });
+
+            item.querySelector('.btn-delete')?.addEventListener('click', e => {
+                e.stopPropagation();
+                this.engine.removeLayer(layer.getId());
             });
             list.appendChild(item);
         });
-        list.querySelector('.layer-item')?.classList.add('active');
     }
 
     private subscribeHistory(): void {

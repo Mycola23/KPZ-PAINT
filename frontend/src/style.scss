@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap");
-
+@import "_nullstyle";
 $ink: #0d0d0d;
 $paper: #f0ede8;
 $panel: #161616;
@@ -8,7 +8,7 @@ $border: #2a2a2a;
 $accent: #e94560;
 $accent2: #4d96ff;
 $text: #d4cfc9;
-$muted: #6b6560;
+$muted: #c5bdb7;
 $radius: 5px;
 
 // styles reset =============================================================
@@ -41,7 +41,7 @@ select {
 // == app container =============================
 .app {
     display: grid;
-    grid-template-rows: 48px 1fr;
+    grid-template-rows: 60px 1fr;
     height: 100vh;
     background: $ink;
     color: $text;
@@ -63,7 +63,7 @@ select {
 
     &__brand {
         font-family: "Space Mono", monospace;
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 700;
         color: $accent;
         white-space: nowrap;
@@ -81,8 +81,8 @@ select {
     }
 
     &__tool {
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -114,8 +114,8 @@ select {
     }
 
     &__btn {
-        width: 30px;
-        height: 30px;
+        width: 70px;
+        height: 45px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -151,7 +151,6 @@ select {
         &--ghost {
             color: $muted;
             font-family: "Space Mono", monospace;
-            font-size: 10px;
             border: 1px solid $border;
             border-radius: $radius;
             width: auto;
@@ -176,12 +175,11 @@ select {
     }
 
     &__select {
-        height: 30px;
+        min-height: 45px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid $border;
         border-radius: $radius;
         color: $text;
-        font-size: 12px;
         padding: 0 8px;
         appearance: none;
         cursor: pointer;
@@ -195,7 +193,7 @@ select {
     }
 
     &__title-input {
-        height: 30px;
+        height: 45px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid $border;
         border-radius: $radius;
@@ -229,7 +227,7 @@ select {
 // == workspace ==============
 .workspace {
     display: grid;
-    grid-template-columns: 168px 1fr 160px;
+    grid-template-columns: 168px 1fr 300px;
     overflow: hidden;
 }
 
@@ -344,15 +342,15 @@ select {
 }
 
 .layer-add-btn {
-    width: 22px;
-    height: 22px;
+    width: 35px;
+    height: 35px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: $accent;
     color: #fff;
     border-radius: 4px;
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1;
 
     &:hover {
@@ -378,7 +376,7 @@ select {
     transition:
         background 0.12s,
         border-color 0.12s;
-    font-size: 11px;
+    font-size: 14px;
 
     &:hover {
         background: rgba(255, 255, 255, 0.05);
@@ -411,6 +409,97 @@ select {
     white-space: nowrap;
 }
 
+.layer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background: #2a2a3e;
+    margin-bottom: 4px;
+    border-radius: $radius;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        border-color 0.12s;
+    border: 1px solid transparent;
+    min-width: 0;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    &.active {
+        background: rgba($accent, 0.12);
+        border-color: rgba($accent, 0.35);
+        border-left: 3px solid $accent;
+    }
+
+    &__main {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .layer-name {
+        flex: 1;
+        min-width: 0;
+
+        user-select: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: $text;
+    }
+
+    &__order {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        flex-shrink: 0;
+        margin-left: 4px;
+    }
+
+    .layer-action {
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        color: $muted;
+        cursor: pointer;
+        padding: 2px;
+        font-size: 16px;
+        font-weight: 600;
+        &:hover {
+            color: #fff;
+        }
+        &.off {
+            opacity: 0.3;
+        }
+        &.on {
+            color: #ffd93d;
+            opacity: 1;
+        }
+    }
+
+    .layer-move {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        color: $muted;
+
+        padding: 1px 4px;
+        border-radius: 2px;
+
+        &:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+        &:disabled {
+            opacity: 0.1;
+            cursor: default;
+        }
+    }
+}
 // == gallery drawer ================================================
 .gallery-backdrop {
     position: fixed;

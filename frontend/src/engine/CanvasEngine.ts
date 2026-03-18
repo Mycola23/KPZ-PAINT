@@ -106,6 +106,58 @@ export class CanvasEngine extends Observable<EngineState> {
         return this.root.getChildren();
     }
 
+    toggleLayerVisibility(id: string): void {
+        const layer = this.root.getChildById(id);
+        if (layer) {
+            layer.setVisible(!layer.isVisible());
+            this.render();
+            this.emit();
+        }
+    }
+
+    toggleLayerLock(id: string): void {
+        const layer = this.root.getChildById(id);
+        if (layer) {
+            layer.setLocked(!layer.isLocked());
+            this.emit();
+        }
+    }
+
+    renameLayer(id: string, newName: string): void {
+        const layer = this.root.getChildById(id);
+        if (layer && newName.trim()) {
+            layer.setName(newName.trim());
+            this.emit();
+        }
+    }
+
+    moveLayer(id: string, direction: 'up' | 'down'): void {
+        this.root.moveChild(id, direction);
+        this.render();
+        this.emit();
+    }
+
+    removeLayer(id: string): void {
+        const layers = this.root.getChildren();
+
+        if (layers.length <= 1) {
+            alert('Cannot delete the last layer.');
+            return;
+        }
+
+        if (confirm(`Delete layer "${this.root.getChildById(id)?.getName()}"?`)) {
+            this.root.remove(id);
+
+            if (this.active?.getId() === id) {
+                const remaining = this.root.getChildren();
+                this.active = (remaining[remaining.length - 1] as Layer) || null;
+            }
+
+            this.render();
+            this.emit();
+        }
+    }
+
     undo(): void {
         if (this.history.undo()) this.render();
     }
