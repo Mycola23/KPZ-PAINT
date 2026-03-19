@@ -2,10 +2,14 @@ import { CanvasEngine } from './engine/CanvasEngine';
 import { GrayscaleFilter, InvertFilter, SepiaFilter, BrightnessFilter } from './filters/Filters';
 import { type ToolType } from './tools/ToolFactory';
 import './style.scss';
+import { ApiClient } from './api/ApiClient';
 
 class PaintApp {
     private engine!: CanvasEngine;
     private drawingId: number | null = null;
+    private api = new ApiClient('/api');
+    private autoTimer: ReturnType<typeof setInterval> | null = null;
+    private static readonly AUTO_INTERVAL = 30_000;
     init(): void {
         document.getElementById('app')!.innerHTML = this.buildHTML();
         const canvas = document.getElementById('paint-canvas') as HTMLCanvasElement;
@@ -15,6 +19,9 @@ class PaintApp {
         this.wireLayerPanel();
         this.wireKeyboard();
         this.subscribeHistory();
+        this.wireSave();
+        setTimeout(() => this.checkAutosave(), 500);
+        this.startAutosave();
     }
 
     private buildHTML(): string {
@@ -316,6 +323,11 @@ class PaintApp {
                 this.engine.redo();
                 return;
             }
+            if (ev.shiftKey && ev.key.toLowerCase() === 's') {
+                ev.preventDefault();
+                this.saveToServer();
+                return;
+            }
 
             const tool = shortcuts[ev.key.toLowerCase()];
             if (tool) {
@@ -324,6 +336,86 @@ class PaintApp {
                 document.querySelector<HTMLButtonElement>(`[data-tool="${tool}"]`)?.classList.add('topbar__tool--active');
             }
         });
+    }
+
+    private wireSave(): void {
+        getById('btn-save')!.addEventListener('click', () => this.saveToServer());
+    }
+
+    private async saveToServer(): Promise<void> {
+        const titleInput = getById<HTMLInputElement>('drawing-title');
+        let title = titleInput?.value.trim() || '';
+
+        if (!title || title === 'Untitled') {
+            const now = new Date();
+            title = `Draft ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            if (titleInput) titleInput.value = title;
+        }
+
+        const status = getById('save-status')!;
+        status.textContent = 'Saving…';
+        status.className = 'topbar__status';
+
+        try {
+            const payload = {
+                title,
+                canvas_json: this.engine.getJson(),
+                image_base64: this.engine.getBase64(),
+                width: this.engine.getCanvasEl().width,
+                height: this.engine.getCanvasEl().height,
+            };
+
+            if (this.drawingId) {
+                await this.api.update(this.drawingId, payload);
+            } else {
+                this.drawingId = await this.api.save(payload);
+            }
+
+            this.api.clearAutosave();
+            status.textContent = '✓ Saved';
+            status.classList.add('topbar__status--ok');
+            setTimeout(() => (status.textContent = ''), 3000);
+        } catch (err) {
+            status.textContent = '✗ Error';
+            status.classList.add('topbar__status--err');
+        }
+    }
+
+    private startAutosave(): void {
+        this.autoTimer = setInterval(() => {
+            const title = getById<HTMLInputElement>('drawing-title')?.value ?? 'Autosave';
+            this.api.autosave(this.engine.getJson(), title);
+        }, PaintApp.AUTO_INTERVAL);
+    }
+
+    private async loadDrawing(id: number): Promise<void> {
+        const full = await this.api.get(id);
+        if (full) {
+            this.drawingId = full.id;
+            const titleEl = getById<HTMLInputElement>('drawing-title');
+            if (titleEl) titleEl.value = full.title;
+            await this.engine.loadFromJson(full.canvas_json);
+        }
+    }
+
+    private checkAutosave(): void {
+        const saved = this.api.loadAutosave();
+        if (!saved) return;
+
+        const ago = Math.round((Date.now() - new Date(saved.ts).getTime()) / 60000);
+        if (ago < 120) {
+            const confirmRestore = confirm(`You have an unsaved drawing "${saved.title}" from ${ago} min ago. Restore it?`);
+            if (confirmRestore) {
+                const titleEl = getById<HTMLInputElement>('drawing-title');
+                if (titleEl) titleEl.value = saved.title;
+                this.engine.loadFromJson(saved.json);
+            }
+        }
+        this.api.clearAutosave();
+    }
+    destroy(): void {
+        if (this.autoTimer) clearInterval(this.autoTimer);
+        CanvasEngine.reset();
     }
 }
 

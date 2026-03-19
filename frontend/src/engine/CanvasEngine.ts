@@ -195,6 +195,40 @@ export class CanvasEngine extends Observable<EngineState> {
         return this.canvas;
     }
 
+    async loadFromJson(jsonString: string): Promise<void> {
+        try {
+            const data = JSON.parse(jsonString);
+            this.root.getChildren().forEach(child => this.root.remove(child.getId()));
+            this.active = null;
+
+            for (const layerData of data.layers) {
+                const layer = new Layer(this.canvas.width, this.canvas.height, layerData.name);
+                layer.setOpacity(layerData.opacity ?? 100);
+                layer.setVisible(layerData.visible ?? true);
+
+                if (layerData.imageData) {
+                    await new Promise(resolve => {
+                        const img = new Image();
+                        img.onload = () => {
+                            layer.getContext().drawImage(img, 0, 0);
+                            resolve(null);
+                        };
+                        img.src = layerData.imageData;
+                    });
+                }
+
+                this.root.add(layer);
+                if (!this.active) this.active = layer;
+            }
+
+            this.render();
+            this.emit();
+        } catch (e) {
+            console.error('Failed to load JSON', e);
+            throw e;
+        }
+    }
+
     private render(): void {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.root.renderTo(this.ctx);
