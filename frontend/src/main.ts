@@ -20,6 +20,7 @@ class PaintApp {
         this.wireKeyboard();
         this.subscribeHistory();
         this.wireSave();
+        this.wireGallery();
         setTimeout(() => this.checkAutosave(), 500);
         this.startAutosave();
     }
@@ -66,10 +67,13 @@ class PaintApp {
             <button class="topbar__btn topbar__btn--ghost" id="exp-json">JSON</button>
         
             <div class="topbar__sep"></div>
-        
+            <button class="topbar__btn topbar__btn--ghost" id="btn-gallery" title="Open Gallery (G)" style="margin-right: 8px;">
+                📂
+            </button>
             <input id="drawing-title" class="topbar__title-input" value="Untitled" maxlength="255">
             <button class="topbar__btn topbar__btn--save" id="btn-save">Save</button>
             <span class="topbar__status" id="save-status"></span>
+           
         </header>
         
         <!-- MAIN  -->
@@ -307,30 +311,40 @@ class PaintApp {
             r: 'rectangle',
             c: 'circle',
             f: 'fill',
+            g: 'gallery',
         };
 
         document.addEventListener('keydown', ev => {
             const tag = (ev.target as HTMLElement).tagName;
             if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-            if ((ev.ctrlKey || ev.metaKey) && ev.key === 'z') {
-                ev.preventDefault();
-                this.engine.undo();
-                return;
-            }
-            if ((ev.ctrlKey || ev.metaKey) && ev.key === 'y') {
-                ev.preventDefault();
-                this.engine.redo();
-                return;
-            }
-            if (ev.shiftKey && ev.key.toLowerCase() === 's') {
+            const key = ev.key.toLowerCase();
+
+            if ((ev.shiftKey || ev.ctrlKey || ev.metaKey) && key === 's') {
                 ev.preventDefault();
                 this.saveToServer();
                 return;
             }
 
-            const tool = shortcuts[ev.key.toLowerCase()];
-            if (tool) {
+            if ((ev.ctrlKey || ev.metaKey) && key === 'z') {
+                ev.preventDefault();
+                this.engine.undo();
+                return;
+            }
+
+            if ((ev.ctrlKey || ev.metaKey) && key === 'y') {
+                ev.preventDefault();
+                this.engine.redo();
+                return;
+            }
+
+            if (key === 'g') {
+                getById('btn-gallery')?.click();
+                return;
+            }
+
+            const tool = shortcuts[key];
+            if (tool && tool !== 'gallery') {
                 this.engine.setTool(tool);
                 document.querySelectorAll('.topbar__tool').forEach(b => b.classList.remove('topbar__tool--active'));
                 document.querySelector<HTMLButtonElement>(`[data-tool="${tool}"]`)?.classList.add('topbar__tool--active');
@@ -386,6 +400,102 @@ class PaintApp {
             const title = getById<HTMLInputElement>('drawing-title')?.value ?? 'Autosave';
             this.api.autosave(this.engine.getJson(), title);
         }, PaintApp.AUTO_INTERVAL);
+    }
+
+    private wireGallery(): void {
+        const backdrop = getById('gallery-backdrop')!;
+        const drawer = getById('gallery-drawer')!;
+        const closeBtn = getById('gallery-close')!;
+        const openBtn = getById('btn-gallery')!;
+        const brand = document.querySelector('.topbar__brand') as HTMLElement;
+        brand.style.cursor = 'pointer';
+        brand.addEventListener('click', async () => {
+            backdrop.classList.remove('hidden');
+            drawer.classList.remove('hidden');
+            this.renderGallery();
+        });
+
+        openBtn.addEventListener('click', () => {
+            backdrop.classList.remove('hidden');
+            drawer.classList.remove('hidden');
+            this.renderGallery();
+        });
+        closeBtn.addEventListener('click', () => {
+            backdrop.classList.add('hidden');
+            drawer.classList.add('hidden');
+        });
+        backdrop.addEventListener('click', () => closeBtn.click());
+    }
+
+    private async renderGallery(): Promise<void> {
+        const grid = getById('gallery-grid')!;
+        grid.innerHTML = 'Loading...';
+        try {
+            const drawings = await this.api.list();
+            if (drawings.length === 0) {
+                grid.innerHTML = '<div class="gallery-status">No saved drawings.</div>';
+                return;
+            }
+            grid.innerHTML = drawings
+                .map(
+                    d => `
+            <div class="gallery-item" data-id="${d.id}">
+                <button class="gallery-item__delete" data-id="${d.id}" title="Delete drawing">✕</button>
+                
+                <div class="gallery-item__thumb">
+                    ${d.thumbnail ? `<img src="data:image/png;base64,${d.thumbnail}">` : '<div class="no-preview">No preview</div>'}
+                </div>
+                <div class="gallery-item__info">
+                    <div class="gallery-item__title">${d.title}</div>
+                    <div class="gallery-item__date">${new Date(d.updated_at).toLocaleDateString()}</div>
+                </div>
+            </div>
+        `,
+                )
+                .join('');
+
+            grid.querySelectorAll('.gallery-item').forEach(el => {
+                el.addEventListener('click', async e => {
+                    if ((e.target as HTMLElement).classList.contains('gallery-item__delete')) return;
+
+                    const id = Number((el as HTMLElement).dataset['id']);
+                    await this.loadDrawing(id);
+                    getById('gallery-close')?.click();
+                });
+            });
+
+            grid.querySelectorAll('.gallery-item__delete').forEach(btn => {
+                btn.addEventListener('click', async e => {
+                    e.stopPropagation();
+
+                    const id = Number((btn as HTMLElement).dataset['id']);
+                    const item = (btn as HTMLElement).closest('.gallery-item') as HTMLElement;
+                    const title = item.querySelector('.gallery-item__title')?.textContent || 'this drawing';
+
+                    if (confirm(`Are you sure you want to delete "${title}"?`)) {
+                        try {
+                            (btn as HTMLElement).textContent = '...';
+                            await this.api.del(id);
+
+                            if (this.drawingId === id) {
+                                this.drawingId = null;
+                                const titleInput = getById<HTMLInputElement>('drawing-title');
+                                if (titleInput) titleInput.value = 'Untitled';
+                            }
+
+                            item.style.opacity = '0';
+                            item.style.transform = 'scale(0.8)';
+                            setTimeout(() => this.renderGallery(), 300);
+                        } catch (err) {
+                            alert('Failed to delete drawing');
+                            this.renderGallery();
+                        }
+                    }
+                });
+            });
+        } catch (e) {
+            grid.innerHTML = '<div class="gallery-status error">Error loading gallery</div>';
+        }
     }
 
     private async loadDrawing(id: number): Promise<void> {

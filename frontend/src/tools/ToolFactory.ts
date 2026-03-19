@@ -1,7 +1,7 @@
 import { type ITool } from './ITool';
 import { BrushTool, EraserTool, LineTool, RectangleTool, CircleTool, FillTool } from './Tools';
 
-export type ToolType = 'brush' | 'eraser' | 'line' | 'rectangle' | 'circle' | 'fill';
+export type ToolType = 'brush' | 'eraser' | 'line' | 'rectangle' | 'circle' | 'fill' | 'gallery';
 
 export class ToolFactory {
     private static readonly registry = new Map<ToolType, () => ITool>([
