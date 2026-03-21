@@ -21,6 +21,7 @@ class PaintApp {
         this.subscribeHistory();
         this.wireSave();
         this.wireGallery();
+        this.wireDragAndDrop();
         setTimeout(() => this.checkAutosave(), 500);
         this.startAutosave();
     }
@@ -526,6 +527,70 @@ class PaintApp {
     destroy(): void {
         if (this.autoTimer) clearInterval(this.autoTimer);
         CanvasEngine.reset();
+    }
+
+    private wireDragAndDrop(): void {
+        const canvasArea = document.querySelector('.canvas-area') as HTMLElement;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            canvasArea.addEventListener(
+                eventName,
+                e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                },
+                false,
+            );
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            canvasArea.addEventListener(
+                eventName,
+                () => {
+                    canvasArea.classList.add('drag-over');
+                },
+                false,
+            );
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            canvasArea.addEventListener(
+                eventName,
+                () => {
+                    canvasArea.classList.remove('drag-over');
+                },
+                false,
+            );
+        });
+
+        canvasArea.addEventListener('drop', (e: DragEvent) => {
+            const files = e.dataTransfer?.files;
+            if (!files || files.length === 0) return;
+            const file = files[0];
+
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                alert('PLease, drag only .json file from our app');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async event => {
+                const content = event.target?.result as string;
+                try {
+                    await this.engine.loadFromJson(content);
+                    const titleInput = getById<HTMLInputElement>('drawing-title');
+                    if (titleInput) {
+                        titleInput.value = file.name.replace('.json', '');
+                    }
+                    this.drawingId = null;
+
+                    console.log('[PaintApp] JSON loaded via drag-and-drop');
+                } catch (err) {
+                    alert('Error during reading your JSON-file. Maybe, file broken');
+                }
+            };
+            reader.readAsText(file);
+        });
     }
 }
 
