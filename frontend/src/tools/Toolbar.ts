@@ -71,11 +71,11 @@ export class Toolbar {
         });
 
         // undo / redo / clear
-        this.container.querySelector('#btn-undo')?.addEventListener('click', () => this.engine /* add undo*/);
-        this.container.querySelector('#btn-redo')?.addEventListener('click', () => this.engine /* add redo*/);
+        this.container.querySelector('#btn-undo')?.addEventListener('click', () => this.engine.undo());
+        this.container.querySelector('#btn-redo')?.addEventListener('click', () => this.engine.redo());
         this.container.querySelector('#btn-clear')?.addEventListener('click', () => {
             if (confirm('Clear the canvas? This action can be undone.')) {
-                this.engine; //make clear
+                this.engine.clear();
             }
         });
 
@@ -95,12 +95,12 @@ export class Toolbar {
 
         if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
             e.preventDefault();
-            this.engine; //add undo
+            this.engine.undo();
             return;
         }
         if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
             e.preventDefault();
-            this.engine; // add redo
+            this.engine.redo();
             return;
         }
 
