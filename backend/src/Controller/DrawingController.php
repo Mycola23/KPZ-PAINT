@@ -1,5 +1,5 @@
 <?php
-
+use Paint\Controller\ImageService;
 declare(strict_types=1);
 
 namespace Paint\Controller;
@@ -10,12 +10,16 @@ use Paint\Model\DrawingModel;
 class DrawingController extends BaseController
 {
     private DrawingModel $model;
-
+    private ImageService $imageService;
     public function __construct()
     {
         $this->model = new DrawingModel();
     }
-
+    public function __construct(DrawingModel $model = null, ImageService $imageService = null)
+    {
+        $this->model = $model ?? new DrawingModel();
+        $this->imageService = $imageService ?? new ImageService();
+    }
     public function list(): void
     {
         $drawings = $this->model->all();
@@ -45,14 +49,14 @@ class DrawingController extends BaseController
         $id = $this->model->create([
             'title'        => mb_substr(strip_tags($body['title'] ?? 'Untitled'), 0, 255),
             'canvas_json'  => $body['canvas_json'],
-            'thumbnail'    => $this->extractThumbnail($body['image_base64'] ?? null),
+            'thumbnail' => $this->imageService->extractThumbnail($body['image_base64'] ?? null),
             'canvas_width' => (int) ($body['width']  ?? 800),
             'canvas_height' => (int) ($body['height'] ?? 600),
         ]);
 
 
         if (!empty($body['image_base64'])) {
-            $filePath = $this->saveImageFile($body['image_base64'], $id);
+           $filePath = $this->imageService->saveImageFile($body['image_base64'], $id);
             if ($filePath) {
                 $this->model->update($id, ['file_path' => $filePath]);
             }
