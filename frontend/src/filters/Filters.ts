@@ -44,15 +44,21 @@ export class InvertFilter implements IFilter {
 export class SepiaFilter implements IFilter {
     readonly name = 'Sepia';
 
+    // Стандартні коефіцієнти сепії 
+    private static readonly COEFF = {
+        rR: 0.393, rG: 0.769, rB: 0.189,
+        gR: 0.349, gG: 0.686, gB: 0.168,
+        bR: 0.272, bG: 0.534, bB: 0.131,
+    } as const;
+
     apply(imageData: ImageData): ImageData {
         const out = clone(imageData);
+        const c = SepiaFilter.COEFF;
         for (let i = 0; i < out.data.length; i += 4) {
-            const r = out.data[i],
-                g = out.data[i + 1],
-                b = out.data[i + 2];
-            out.data[i] = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
-            out.data[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
-            out.data[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
+            const r = out.data[i], g = out.data[i + 1], b = out.data[i + 2];
+            out.data[i]     = Math.min(255, r * c.rR + g * c.rG + b * c.rB);
+            out.data[i + 1] = Math.min(255, r * c.gR + g * c.gG + b * c.gB);
+            out.data[i + 2] = Math.min(255, r * c.bR + g * c.bG + b * c.bB);
         }
         return out;
     }
